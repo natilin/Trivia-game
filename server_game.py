@@ -1,11 +1,13 @@
 import socket
 import chatlib
 import random
+import select
 
 # GLOBALS
 users = {
     "Nati": { "password": "123", "score": 0, "questions_asked": []},
-    "Shira": {"password": "123", "score": 0, "questions_asked": []}
+    "Shira": {"password": "123", "score": 0, "questions_asked": []},
+    "Serge": {"password": "123", "score": 0, "questions_asked": []}
         }
 questions = {
     2313: {"question": "How much is 2+2", "answers": ["3", "4", "2", "1"], "correct": 2},
@@ -97,11 +99,18 @@ def handle_getscore_message(conn, username):
 
 
 def handle_highscore_message(conn):
-    sorted_score = sorted(users, key=lambda value: value[3], reverse=True)
+    sorted_score = sorted(users, key=lambda value: value[2], reverse=True)
     high_score_msg = ""
     for name in sorted_score:
         high_score_msg += f"{name}:{users[name]['score']}" + "\n"
     build_and_send_message(conn, chatlib.PROTOCOL_SERVER["highscore_msg"], high_score_msg)
+
+def get_logged_users(conn):
+    logged_users_names = ""
+    #for name in logged_users:
+    data = "This service is temporarily unavailable"
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["user_logged_msg"],data)
+    pass
 
 def load_questions():
     return questions
@@ -118,7 +127,7 @@ def handle_question_message(conn):
     build_and_send_message(conn, chatlib.PROTOCOL_SERVER["question_msg"], question)
 
 
-def handle_answer_message(conn,username, data):
+def handle_answer_message(conn, username, data):
     ques_num, user_ans= data.split("#")
     correct_ans = questions[int(ques_num)]["correct"]
     if correct_ans == int(user_ans):
@@ -147,7 +156,9 @@ def handle_client_message(conn):
     elif code == chatlib.PROTOCOL_CLIENT["question_request"]:
         handle_question_message(conn)
     elif code == chatlib.PROTOCOL_CLIENT["answer_msg"]:
-        handle_answer_message(conn,logged_users[conn.getpeername()], data)
+        handle_answer_message(conn, logged_users[conn.getpeername()], data)
+    elif code == chatlib.PROTOCOL_CLIENT["users_logged"]:
+        get_logged_users(conn)
     else:
         send_error(conn, "Invalid message received")
 
@@ -156,11 +167,19 @@ def main():
     server_socket = setup_socket()
 
     while True:
-        client_socket, client_address = server_socket.accept()
-        print("Client connected:", client_address)
-        socket_lst.append(client_address)
-        while socket_lst:
-            handle_client_message(client_socket)
+        ready_to_read, ready_to_write, in_error = select.select([server_socket] + socket_lst, [], [])
+        for current_socket in ready_to_read:
+            if current_socket is server_socket:
+                client_socket, client_address = current_socket.accept()
+                print("Client connected:", client_address)
+                socket_lst.append(client_socket)
+            else:
+                handle_client_message(current_socket)
+
+        for client in msg_to_send:
+            client[0].send(client[1].encode())
+            msg_to_send.remove(client)
+            print("[SERVER] ", client[0].getpeername(), client[1])
 
 
 if __name__ == '__main__':

@@ -24,6 +24,7 @@ def recv_message_and_parse(conn):
     If error occured, will return None, None
     """
     full_msg = conn.recv(1024).decode()
+    #print(full_msg)
 
     cmd, data = chatlib.parse_message(full_msg)
     return cmd, data
