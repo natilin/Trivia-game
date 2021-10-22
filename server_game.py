@@ -19,7 +19,7 @@ socket_lst = []
 
 ERROR_MSG = "Error! "
 SERVER_PORT = 5678
-SERVER_IP = "127.0.0.1"
+SERVER_IP = "0.0.0.0"
 
 msg_to_send = []
 
