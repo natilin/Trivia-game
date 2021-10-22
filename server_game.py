@@ -89,7 +89,7 @@ def handle_login_message(conn, data):
 
 def handle_logout_message(conn):
     print("Disconnecting", conn.getpeername())
-    socket_lst.remove(conn.getpeername())
+    socket_lst.remove(conn)
     conn.close()
 
 
