@@ -19,7 +19,6 @@ socket_lst = []
 
 ERROR_MSG = "Error! "
 SERVER_PORT = 5678
-SERVER_IP = "0.0.0.0"
 
 msg_to_send = []
 
@@ -105,26 +104,28 @@ def handle_highscore_message(conn):
         high_score_msg += f"{name}:{users[name]['score']}" + "\n"
     build_and_send_message(conn, chatlib.PROTOCOL_SERVER["highscore_msg"], high_score_msg)
 
+
 def get_logged_users(conn):
-    logged_users_names = ""
-    #for name in logged_users:
+    users_name = list(logged_users.values())
+    logged_users_names = ", ".join(users_name)
     data = "This service is temporarily unavailable"
-    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["user_logged_msg"],data)
-    pass
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["user_logged_msg"], logged_users_names)
+
 
 def load_questions():
     return questions
 
 
-def create_random_question():
+def create_random_question(user_name):
     quest_list = load_questions()
     random_num = random.choice(list(quest_list))
     return [random_num, quest_list[random_num]["question"]] + quest_list[random_num]["answers"]
     
 
-def handle_question_message(conn):
-    question = create_random_question()
+def handle_question_message(conn, user_name):
+    question = create_random_question(user_name)
     build_and_send_message(conn, chatlib.PROTOCOL_SERVER["question_msg"], question)
+    users[user_name]["questions_asked"].append(question[0])
 
 
 def handle_answer_message(conn, username, data):
@@ -154,7 +155,7 @@ def handle_client_message(conn):
     elif code == chatlib.PROTOCOL_CLIENT["highscore_request_msg"]:
         handle_highscore_message(conn)
     elif code == chatlib.PROTOCOL_CLIENT["question_request"]:
-        handle_question_message(conn)
+        handle_question_message(conn, logged_users[conn.getpeername()])
     elif code == chatlib.PROTOCOL_CLIENT["answer_msg"]:
         handle_answer_message(conn, logged_users[conn.getpeername()], data)
     elif code == chatlib.PROTOCOL_CLIENT["users_logged"]:
