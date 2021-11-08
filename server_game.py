@@ -118,15 +118,24 @@ def load_questions():
 
 def create_random_question(user_name):
     quest_list = load_questions()
-    random_num = random.choice(list(quest_list))
-    return [random_num, quest_list[random_num]["question"]] + quest_list[random_num]["answers"]
-    
+    quest_asked = users[user_name]["questions_asked"]
+    quest_not_asked = []
+    for question in quest_list:
+        if question not in quest_asked:
+            quest_not_asked.append(question)
+    if quest_not_asked:
+        random_num = random.choice(list(quest_not_asked))
+        return [random_num, quest_list[random_num]["question"]] + quest_list[random_num]["answers"]
+    else:
+        return None
 
 def handle_question_message(conn, user_name):
     question = create_random_question(user_name)
-    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["question_msg"], question)
-    users[user_name]["questions_asked"].append(question[0])
-
+    if question is not None:
+        build_and_send_message(conn, chatlib.PROTOCOL_SERVER["question_msg"], question)
+        users[user_name]["questions_asked"].append(question[0])
+    else:
+        send_error(conn, "No more questions!")
 
 def handle_answer_message(conn, username, data):
     ques_num, user_ans= data.split("#")
