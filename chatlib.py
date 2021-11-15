@@ -1,3 +1,5 @@
+import html
+
 CMD_FIELD_LENGTH = 16	# Exact length of cmd field (in bytes)
 LENGTH_FIELD_LENGTH = 4   # Exact length of length field (in bytes)
 MAX_DATA_LENGTH = 10**LENGTH_FIELD_LENGTH-1  # Max size of data field according to protocol
@@ -68,8 +70,8 @@ def build_message(cmd, data):
         return None
     else:
         if type(data) != str:  # In case the data is  a collection and there is more than 1 field
-            data = join_data(data)
-        data_length = str(len(data)).rjust(4,"0")
+            data = html.unescape(join_data(data))  # html.unescape - convert charters from html tags to regular charters
+        data_length = str(len(data)).rjust(4, "0")
         cmd = cmd.ljust(16)
         full_msg =f"{cmd}|{data_length}|{data}"
 

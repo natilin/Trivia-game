@@ -24,7 +24,7 @@ def recv_message_and_parse(conn):
     If error occured, will return None, None
     """
     full_msg = conn.recv(1024).decode()
-    #print(full_msg)
+    # print(full_msg)
 
     cmd, data = chatlib.parse_message(full_msg)
     return cmd, data
@@ -122,6 +122,7 @@ def play_question(conn):
         id_quest = ans_split[0]
         print_question(ans_split)
         user_ans = input("What is the correct answer?(1-4)")
+        user_ans = ans_split[int(user_ans) + 1]
         am_i_right(id_quest, user_ans, conn)
 
 

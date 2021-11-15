@@ -2,6 +2,8 @@ import socket
 import chatlib
 import random
 import select
+import json
+import html
 
 # GLOBALS
 users = {
@@ -113,6 +115,10 @@ def get_logged_users(conn):
 
 
 def load_questions():
+    with open(r"D:\‏‏תיקיה חדשה\Courses\Trivia\api.json", "r") as f:
+        q = json.load(f)
+        questions = q['results']
+        #question = [q[0]['question'], q[0]['correct_answer'], q[0]['incorrect_answers']]
     return questions
 
 
@@ -120,14 +126,19 @@ def create_random_question(user_name):
     quest_list = load_questions()
     quest_asked = users[user_name]["questions_asked"]
     quest_not_asked = []
-    for question in quest_list:
-        if question not in quest_asked:
-            quest_not_asked.append(question)
+    for i in range(len(quest_list)):
+        if i not in quest_asked:
+            quest_not_asked.append(i)
+
     if quest_not_asked:
         random_num = random.choice(list(quest_not_asked))
-        return [random_num, quest_list[random_num]["question"]] + quest_list[random_num]["answers"]
+        answers = quest_list[random_num]['incorrect_answers']
+        answers.append(quest_list[random_num]['correct_answer'])
+        random.shuffle(answers)
+        return [random_num, quest_list[random_num]["question"]] + answers
     else:
         return None
+
 
 def handle_question_message(conn, user_name):
     question = create_random_question(user_name)
@@ -137,10 +148,12 @@ def handle_question_message(conn, user_name):
     else:
         send_error(conn, "No more questions!")
 
+
 def handle_answer_message(conn, username, data):
-    ques_num, user_ans= data.split("#")
-    correct_ans = questions[int(ques_num)]["correct"]
-    if correct_ans == int(user_ans):
+    quest_list = load_questions()
+    ques_num, user_ans = data.split("#")
+    correct_ans = quest_list[int(ques_num)]['correct_answer']
+    if correct_ans == user_ans:
         users[username]["score"] += 5
         build_and_send_message(conn, chatlib.PROTOCOL_SERVER["correct_answer"], "")
     else:
