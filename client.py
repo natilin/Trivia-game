@@ -121,7 +121,14 @@ def play_question(conn):
         ans_split = chatlib.split_data(ans[1], 6)
         id_quest = ans_split[0]
         print_question(ans_split)
-        user_ans = input("What is the correct answer?(1-4)")
+
+        invalid_input = True
+        while invalid_input:
+            user_ans = input("What is the correct answer?(1-4)")
+            if user_ans not in ('1', '2', '3', '4'):
+                print("Choose number between 1-4!")
+            else:
+                invalid_input = False
         user_ans = ans_split[int(user_ans) + 1]
         am_i_right(id_quest, user_ans, conn)
 

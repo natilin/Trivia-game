@@ -3,7 +3,6 @@ import chatlib
 import random
 import select
 import json
-import html
 
 # GLOBALS
 users = {
@@ -115,7 +114,7 @@ def get_logged_users(conn):
 
 
 def load_questions():
-    with open(r"D:\‏‏תיקיה חדשה\Courses\Trivia\api.json", "r") as f:
+    with open(r"api (2).json", "r") as f:
         q = json.load(f)
         questions = q['results']
         #question = [q[0]['question'], q[0]['correct_answer'], q[0]['incorrect_answers']]
